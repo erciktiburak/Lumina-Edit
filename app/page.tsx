@@ -6,6 +6,7 @@ import { detectCapabilities } from "@/lib/compat/browser-check";
 import { ffmpegEngine } from "@/lib/ffmpeg/engine";
 import { useEditorStore } from "@/lib/state/editor-store";
 import { ExportModal } from "@/components/export-modal";
+import { AudioWaveform } from "@/components/audio-waveform";
 import { LogConsole } from "@/components/log-console";
 import { MetricsPanel } from "@/components/metrics-panel";
 import { PropertiesPanel } from "@/components/properties-panel";
@@ -115,6 +116,7 @@ export default function HomePage() {
           <UploadZone onFileReady={setFile} />
           <VideoPlayer file={file} />
           <Timeline />
+          <AudioWaveform file={file} />
           <LogConsole />
         </section>
         <section className="space-y-4">
