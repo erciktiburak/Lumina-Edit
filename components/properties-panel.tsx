@@ -29,6 +29,20 @@ export function PropertiesPanel() {
   return (
     <aside className="panel rounded-2xl p-4">
       <h3 className="mb-3 font-display text-lg">Effects</h3>
+      <div className="mb-3 flex gap-2">
+        <button
+          className="rounded-md border border-border px-2 py-1 text-xs"
+          onClick={() => updateFilters({ brightness: 100, contrast: 100, grayscale: 0, sepia: 0 })}
+        >
+          Reset
+        </button>
+        <button
+          className="rounded-md border border-border px-2 py-1 text-xs"
+          onClick={() => updateFilters({ brightness: 110, contrast: 120, grayscale: 0, sepia: 20 })}
+        >
+          Cinema
+        </button>
+      </div>
       <div className="space-y-3">
         <RangeControl label="Grayscale" value={filters.grayscale} min={0} max={100} onChange={(v) => updateFilters({ grayscale: v })} />
         <RangeControl label="Sepia" value={filters.sepia} min={0} max={100} onChange={(v) => updateFilters({ sepia: v })} />
