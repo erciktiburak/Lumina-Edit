@@ -11,6 +11,7 @@ type EngineStatus = "idle" | "loading" | "ready" | "error";
 class FfmpegEngine {
   private ffmpeg: FFmpeg | null = null;
   private status: EngineStatus = "idle";
+  private initPromise: Promise<void> | null = null;
   private listeners = new Set<(line: string) => void>();
 
   getStatus() {
@@ -29,8 +30,15 @@ class FfmpegEngine {
   }
 
   async init() {
-    if (this.ffmpeg || this.status === "loading") return;
+    if (this.ffmpeg) return;
+    if (this.initPromise) return this.initPromise;
 
+    this.initPromise = this.boot();
+    await this.initPromise;
+    this.initPromise = null;
+  }
+
+  private async boot() {
     this.status = "loading";
     try {
       const ffmpeg = new FFmpeg();
@@ -55,6 +63,7 @@ class FfmpegEngine {
     } catch (error) {
       this.status = "error";
       this.emit(error instanceof Error ? error.message : "FFmpeg failed to initialize");
+      this.initPromise = null;
       throw error;
     }
   }
