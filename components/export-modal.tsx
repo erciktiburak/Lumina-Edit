@@ -14,6 +14,8 @@ export function ExportModal({ file }: ExportModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [quality, setQuality] = useState("balanced");
   const [format, setFormat] = useState("mp4");
+  const [trimStartMs, setTrimStartMs] = useState(0);
+  const [trimEndMs, setTrimEndMs] = useState(5000);
 
   const disabled = useMemo(() => !file || isProcessing, [file, isProcessing]);
 
@@ -23,7 +25,9 @@ export function ExportModal({ file }: ExportModalProps) {
     setError(null);
     setIsProcessing(true);
     try {
-      const output = await ffmpegEngine.trim(file, 0, 5000);
+      const safeStart = Math.max(0, Math.min(trimStartMs, trimEndMs - 250));
+      const safeEnd = Math.max(safeStart + 250, trimEndMs);
+      const output = await ffmpegEngine.trim(file, safeStart, safeEnd);
       const a = document.createElement("a");
       const url = URL.createObjectURL(output);
       a.href = url;
@@ -66,6 +70,26 @@ export function ExportModal({ file }: ExportModalProps) {
                   <option value="balanced">Balanced</option>
                   <option value="high">High</option>
                 </select>
+              </label>
+              <label className="flex flex-col gap-1">
+                Trim Start (ms)
+                <input
+                  type="number"
+                  min={0}
+                  value={trimStartMs}
+                  onChange={(e) => setTrimStartMs(Number(e.target.value))}
+                  className="rounded-md border border-border bg-transparent p-2"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                Trim End (ms)
+                <input
+                  type="number"
+                  min={0}
+                  value={trimEndMs}
+                  onChange={(e) => setTrimEndMs(Number(e.target.value))}
+                  className="rounded-md border border-border bg-transparent p-2"
+                />
               </label>
             </div>
 
