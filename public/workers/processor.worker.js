@@ -2,7 +2,7 @@ self.onmessage = async (event) => {
   const { type, payload } = event.data || {};
 
   if (type === "PING") {
-    self.postMessage({ type: "PONG", payload: { ts: Date.now() } });
+    self.postMessage({ type: "PONG", payload: { ts: Date.now(), requestId: payload?.requestId } });
     return;
   }
 
@@ -29,6 +29,6 @@ self.onmessage = async (event) => {
       }
     }
 
-    self.postMessage({ type: "EDGE_RESULT", payload: out.buffer }, [out.buffer]);
+    self.postMessage({ type: "EDGE_RESULT", payload: { requestId: payload.requestId, pixels: out.buffer } }, [out.buffer]);
   }
 };
