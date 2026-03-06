@@ -11,6 +11,8 @@ export function Timeline() {
   const setZoom = useEditorStore((state) => state.setZoom);
 
   const totalMs = useMemo(() => clips.reduce((max, clip) => Math.max(max, clip.endMs), 0), [clips]);
+  const tickMs = 1000;
+  const rulerTicks = Math.max(1, Math.ceil((totalMs + 1000) / tickMs));
 
   return (
     <section className="panel rounded-2xl p-4">
@@ -32,10 +34,29 @@ export function Timeline() {
           >
             <ZoomIn className="h-4 w-4" />
           </button>
+          <input
+            type="range"
+            min={20}
+            max={260}
+            value={zoom}
+            onChange={(event) => setZoom(Number(event.target.value))}
+            aria-label="Timeline zoom"
+          />
         </div>
       </div>
       <div className="overflow-x-auto rounded-lg border border-border p-3">
         <div className="relative h-20 min-w-[480px]" style={{ width: `${timeToPixels(totalMs + 1000, zoom)}px` }}>
+          <div className="absolute inset-x-0 top-0 flex text-[10px] text-muted">
+            {Array.from({ length: rulerTicks }).map((_, index) => (
+              <div
+                key={`tick-${index}`}
+                className="relative border-l border-border/60 pl-1"
+                style={{ width: `${timeToPixels(tickMs, zoom)}px` }}
+              >
+                {Math.floor(index)}s
+              </div>
+            ))}
+          </div>
           {clips.map((clip) => (
             <div
               key={clip.id}
