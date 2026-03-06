@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useEditorStore } from "@/lib/state/editor-store";
+import { seekByFrame } from "@/lib/core/frame-seeker";
 
 type VideoPlayerProps = {
   file: File | null;
@@ -47,6 +48,40 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
         style={{ filter: toCssFilter(filters) }}
         onTimeUpdate={(event) => setCursor(event.currentTarget.currentTime * 1000)}
       />
+      <div className="mt-2 flex justify-end gap-2">
+        <button
+          className="rounded-md border border-border px-2 py-1 text-xs"
+          onClick={() => {
+            const video = videoRef.current;
+            if (!video) return;
+            const targetMs = seekByFrame({
+              currentMs: cursorMs,
+              fps: 30,
+              direction: -1,
+              durationMs: Math.round(video.duration * 1000)
+            });
+            setCursor(targetMs);
+          }}
+        >
+          Prev Frame
+        </button>
+        <button
+          className="rounded-md border border-border px-2 py-1 text-xs"
+          onClick={() => {
+            const video = videoRef.current;
+            if (!video) return;
+            const targetMs = seekByFrame({
+              currentMs: cursorMs,
+              fps: 30,
+              direction: 1,
+              durationMs: Math.round(video.duration * 1000)
+            });
+            setCursor(targetMs);
+          }}
+        >
+          Next Frame
+        </button>
+      </div>
     </div>
   );
 }
