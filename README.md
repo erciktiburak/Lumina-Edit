@@ -13,6 +13,8 @@ Lumina-Edit runs heavy media workflows in the browser using WebAssembly, Web Wor
 
 ## Architecture
 
+Detailed architecture notes: `docs/architecture.md`
+
 ### Runtime Layers
 
 1. **UI Layer (Next.js App Router)**
