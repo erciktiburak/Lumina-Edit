@@ -29,6 +29,7 @@ Lumina-Edit runs heavy media workflows in the browser using WebAssembly, Web Wor
 ### Security model
 
 - Cross-Origin Isolation headers are enabled in `next.config.ts`.
+- Threaded FFmpeg relies on `SharedArrayBuffer` and auto-falls back when COI is unavailable.
 - Media processing runs client-side.
 - Local metrics stay in `localStorage`.
 - No mandatory analytics or server processing.

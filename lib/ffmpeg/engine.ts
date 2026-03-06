@@ -3,6 +3,9 @@ import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
 const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
 
+const canUseThreadedCore = () =>
+  typeof window !== "undefined" && window.crossOriginIsolated && typeof SharedArrayBuffer !== "undefined";
+
 type EngineStatus = "idle" | "loading" | "ready" | "error";
 
 class FfmpegEngine {
@@ -33,10 +36,19 @@ class FfmpegEngine {
       const ffmpeg = new FFmpeg();
       ffmpeg.on("log", ({ message }) => this.emit(message));
 
+      const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript");
+      const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm");
+      const workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, "text/javascript");
+
       await ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm")
+        coreURL,
+        wasmURL,
+        workerURL
       });
+
+      if (!canUseThreadedCore()) {
+        this.emit("Threaded FFmpeg disabled (SharedArrayBuffer or COI unavailable).");
+      }
 
       this.ffmpeg = ffmpeg;
       this.status = "ready";
