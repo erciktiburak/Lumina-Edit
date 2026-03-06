@@ -1,0 +1,21 @@
+{
+  "name": "Lumina-Edit",
+  "short_name": "Lumina",
+  "description": "Browser-native, privacy-first local editing studio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f3ef",
+  "theme_color": "#005fcc",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
