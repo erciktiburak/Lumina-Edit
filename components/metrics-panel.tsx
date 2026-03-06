@@ -2,15 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { metrics } from "@/lib/analytics/local-metrics";
+import { cache } from "@/lib/storage/cache";
 
 type MetricSnapshot = ReturnType<typeof metrics.get>;
 
 export function MetricsPanel() {
   const [snapshot, setSnapshot] = useState<MetricSnapshot>(metrics.get());
+  const [cacheMb, setCacheMb] = useState(0);
 
   useEffect(() => {
     metrics.incrementSession();
     setSnapshot(metrics.get());
+    void cache.assetUsage().then((bytes) => setCacheMb(Math.round((bytes / (1024 * 1024)) * 10) / 10));
   }, []);
 
   return (
@@ -32,6 +35,10 @@ export function MetricsPanel() {
         <div className="rounded-lg border border-border p-2">
           <div className="text-muted">Timeline Minutes</div>
           <div className="text-lg font-semibold">{Math.floor(snapshot.totalProcessedMs / 60000)}</div>
+        </div>
+        <div className="rounded-lg border border-border p-2">
+          <div className="text-muted">IndexedDB Cache</div>
+          <div className="text-lg font-semibold">{cacheMb} MB</div>
         </div>
       </div>
     </section>
