@@ -14,6 +14,7 @@ const toCssFilter = (filters: { grayscale: number; sepia: number; brightness: nu
 
 export function VideoPlayer({ file }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorMs = useEditorStore((state) => state.cursorMs);
   const setCursor = useEditorStore((state) => state.setCursor);
   const filters = useEditorStore((state) => state.filters);
@@ -36,6 +37,27 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
       video.currentTime = target;
     }
   }, [cursorMs]);
+
+  useEffect(() => {
+    let raf = 0;
+    const draw = () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (video && canvas && video.readyState >= 2) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          canvas.width = Math.max(1, video.videoWidth || 320);
+          canvas.height = Math.max(1, video.videoHeight || 180);
+          ctx.filter = toCssFilter(filters);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    };
+
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, [filters]);
 
   if (!file || !objectUrl) {
     return <div className="panel rounded-2xl p-6 text-sm text-muted">No media selected yet.</div>;
@@ -113,6 +135,10 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
         >
           Next Frame
         </button>
+      </div>
+      <div className="mt-2">
+        <p className="mb-1 text-xs text-muted">Canvas filter preview</p>
+        <canvas ref={canvasRef} className="w-full rounded-xl border border-border bg-black" />
       </div>
     </div>
   );
