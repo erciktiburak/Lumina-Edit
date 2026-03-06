@@ -26,7 +26,10 @@ export default function HomePage() {
   const loadSnapshot = useEditorStore((state) => state.loadSnapshot);
 
   useEffect(() => {
-    const unsub = ffmpegEngine.onLog((line) => addLog(line));
+    const unsub = ffmpegEngine.onLog((line) => {
+      const ts = new Date().toISOString().slice(11, 19);
+      addLog(`[${ts}] ${line}`);
+    });
     void loadSnapshot();
     return () => unsub();
   }, [addLog, loadSnapshot]);

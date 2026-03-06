@@ -21,6 +21,7 @@ type EditorState = EditorSnapshot & {
   future: EditorSnapshot[];
   addAsset: (asset: MediaAsset) => void;
   addLog: (line: string) => void;
+  clearLogs: () => void;
   setCursor: (cursorMs: number) => void;
   setZoom: (zoom: number) => void;
   setCurrentAsset: (id: string) => void;
@@ -78,6 +79,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     })),
 
   addLog: (line) => set((state) => ({ ...state, logs: [...state.logs.slice(-150), line] })),
+
+  clearLogs: () => set((state) => ({ ...state, logs: [] })),
 
   setCursor: (cursorMs) => set((state) => ({ ...state, cursorMs })),
 
