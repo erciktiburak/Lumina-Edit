@@ -7,6 +7,7 @@ import { formatMs, timeToPixels } from "@/lib/utils/time";
 
 export function Timeline() {
   const clips = useEditorStore((state) => state.clips);
+  const tracks = useEditorStore((state) => state.tracks);
   const zoom = useEditorStore((state) => state.zoom);
   const setZoom = useEditorStore((state) => state.setZoom);
 
@@ -45,8 +46,8 @@ export function Timeline() {
         </div>
       </div>
       <div className="overflow-x-auto rounded-lg border border-border p-3">
-        <div className="relative h-20 min-w-[480px]" style={{ width: `${timeToPixels(totalMs + 1000, zoom)}px` }}>
-          <div className="absolute inset-x-0 top-0 flex text-[10px] text-muted">
+        <div className="relative min-w-[480px]" style={{ width: `${timeToPixels(totalMs + 1000, zoom)}px` }}>
+          <div className="sticky left-0 top-0 z-20 flex text-[10px] text-muted">
             {Array.from({ length: rulerTicks }).map((_, index) => (
               <div
                 key={`tick-${index}`}
@@ -57,16 +58,25 @@ export function Timeline() {
               </div>
             ))}
           </div>
-          {clips.map((clip) => (
-            <div
-              key={clip.id}
-              className="absolute top-6 h-10 rounded-md border border-accent bg-accent/15 px-2 py-1 text-xs"
-              style={{ left: `${timeToPixels(clip.startMs, zoom)}px`, width: `${timeToPixels(clip.endMs - clip.startMs, zoom)}px` }}
-              title={`${formatMs(clip.startMs)} - ${formatMs(clip.endMs)}`}
-            >
-              {clip.id.slice(0, 8)}
-            </div>
-          ))}
+          <div className="space-y-2 pt-2">
+            {tracks.map((track) => (
+              <div key={track.id} className="relative h-12 rounded-md border border-border/70 bg-black/5">
+                <div className="absolute left-1 top-1 text-[10px] uppercase text-muted">{track.name}</div>
+                {clips
+                  .filter((clip) => clip.trackId === track.id)
+                  .map((clip) => (
+                    <div
+                      key={clip.id}
+                      className="absolute top-4 h-7 rounded-md border border-accent bg-accent/15 px-2 py-1 text-[10px]"
+                      style={{ left: `${timeToPixels(clip.startMs, zoom)}px`, width: `${timeToPixels(clip.endMs - clip.startMs, zoom)}px` }}
+                      title={`${formatMs(clip.startMs)} - ${formatMs(clip.endMs)}`}
+                    >
+                      {clip.id.slice(0, 8)}
+                    </div>
+                  ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
