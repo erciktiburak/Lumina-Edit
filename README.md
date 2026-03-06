@@ -83,6 +83,7 @@ lib/storage/         # Dexie IndexedDB layer
 lib/utils/           # Time conversion utilities
 public/workers/      # Processing worker script
 tests/               # Unit and e2e tests
+wasm/                # Rust/WASM experimental filters
 ```
 
 ## Next milestones
