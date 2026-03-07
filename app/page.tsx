@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { detectCapabilities } from "@/lib/compat/browser-check";
 import { ffmpegEngine } from "@/lib/ffmpeg/engine";
 import { useEditorStore } from "@/lib/state/editor-store";
+import { EffectPresetLibrary } from "@/components/effect-preset-library";
 import { ExportModal } from "@/components/export-modal";
 import { AudioWaveform } from "@/components/audio-waveform";
 import { LogConsole } from "@/components/log-console";
@@ -120,6 +121,7 @@ export default function HomePage() {
           <LogConsole />
         </section>
         <section className="space-y-4">
+          <EffectPresetLibrary />
           <PropertiesPanel />
           <MetricsPanel />
         </section>
