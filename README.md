@@ -49,6 +49,7 @@ Detailed architecture notes: `docs/architecture.md`
 - Speed manipulation controls (0.5x to 2.0x) for preview and export.
 - Effect preset library with one-click real-time preview.
 - Adaptive canvas preview tuned for smoother 4K playback.
+- Batch processing mode for sequential multi-clip exports.
 - Local export modal and download.
 - Tutorial overlay for first-time users.
 - Local-only usage metrics panel.
@@ -65,9 +66,9 @@ Detailed architecture notes: `docs/architecture.md`
 
 ## Progress Snapshot
 
-- Current status: through roadmap step #27.
-- Recent commits include overlays, transitions, preset library, 4K canvas optimization, and speed controls.
-- The next focus is batch processing and undo/redo depth polishing.
+- Current status: through roadmap step #29.
+- Recent commits include overlays, transitions, presets, 4K optimization, speed controls, and batch export.
+- The next focus is timeline UX depth and stronger undo/redo ergonomics.
 
 ## Browser-native limitations
 
