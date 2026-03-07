@@ -13,6 +13,16 @@ type VideoPlayerProps = {
 const toCssFilter = (filters: { grayscale: number; sepia: number; brightness: number; contrast: number }) =>
   `grayscale(${filters.grayscale}%) sepia(${filters.sepia}%) brightness(${filters.brightness}%) contrast(${filters.contrast}%)`;
 
+const PLAYBACK_MAX_PREVIEW_PIXELS = 1280 * 720;
+const STILL_MAX_PREVIEW_PIXELS = 1920 * 1080;
+
+const getPreviewScale = (sourceWidth: number, sourceHeight: number, isPlaying: boolean) => {
+  const maxPixels = isPlaying ? PLAYBACK_MAX_PREVIEW_PIXELS : STILL_MAX_PREVIEW_PIXELS;
+  const totalPixels = Math.max(1, sourceWidth * sourceHeight);
+  if (totalPixels <= maxPixels) return 1;
+  return Math.sqrt(maxPixels / totalPixels);
+};
+
 const overlayPositionClass: Record<OverlayPosition, string> = {
   "top-left": "left-4 top-4",
   "top-right": "right-4 top-4",
@@ -32,6 +42,7 @@ const resolveOverlayAnchor = (position: OverlayPosition, width: number, height: 
 export function VideoPlayer({ file }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastDrawTsRef = useRef(0);
   const cursorMs = useEditorStore((state) => state.cursorMs);
   const setCursor = useEditorStore((state) => state.setCursor);
   const filters = useEditorStore((state) => state.filters);
@@ -62,10 +73,30 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       if (video && canvas && video.readyState >= 2) {
+        const sourceWidth = Math.max(1, video.videoWidth || 320);
+        const sourceHeight = Math.max(1, video.videoHeight || 180);
+        const totalPixels = sourceWidth * sourceHeight;
+        const targetFps = isPlaying && totalPixels > 2560 * 1440 ? 24 : 30;
+        const now = performance.now();
+        if (now - lastDrawTsRef.current < 1000 / targetFps) {
+          raf = requestAnimationFrame(draw);
+          return;
+        }
+        lastDrawTsRef.current = now;
+
+        const scale = getPreviewScale(sourceWidth, sourceHeight, isPlaying);
+        const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+        const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+
+        if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+        }
+
         const ctx = canvas.getContext("2d");
         if (ctx) {
-          canvas.width = Math.max(1, video.videoWidth || 320);
-          canvas.height = Math.max(1, video.videoHeight || 180);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
           ctx.filter = toCssFilter(filters);
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -108,8 +139,11 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
     };
 
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
-  }, [filters, overlay]);
+    return () => {
+      cancelAnimationFrame(raf);
+      lastDrawTsRef.current = 0;
+    };
+  }, [filters, isPlaying, overlay]);
 
   if (!file || !objectUrl) {
     return <div className="panel rounded-2xl p-6 text-sm text-muted">No media selected yet.</div>;
@@ -125,6 +159,9 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
           style={{ filter: toCssFilter(filters) }}
           onLoadedMetadata={(event) => setDurationMs(Math.round(event.currentTarget.duration * 1000))}
           onTimeUpdate={(event) => setCursor(event.currentTarget.currentTime * 1000)}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
         />
         {overlay.enabled && (
           <div
