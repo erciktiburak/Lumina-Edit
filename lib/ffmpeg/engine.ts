@@ -1,5 +1,6 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import type { OverlayPosition, OverlaySettings } from "@/lib/types/editor";
 
 const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
 
@@ -27,6 +28,55 @@ class FfmpegEngine {
 
   private emit(line: string) {
     this.listeners.forEach((listener) => listener(line));
+  }
+
+  private escapeDrawText(text: string) {
+    return text
+      .replace(/\\/g, "\\\\")
+      .replace(/:/g, "\\:")
+      .replace(/'/g, "\\\\'")
+      .replace(/,/g, "\\,")
+      .replace(/\[/g, "\\[")
+      .replace(/\]/g, "\\]");
+  }
+
+  private getOverlayCoord(position: OverlayPosition, axis: "x" | "y", token: "text" | "badge") {
+    const margin = "24";
+
+    if (axis === "x") {
+      if (position.endsWith("left")) return margin;
+      if (token === "text") return `w-tw-${margin}`;
+      return `w-200-${margin}`;
+    }
+
+    if (position.startsWith("top")) {
+      if (token === "text") return `${margin}+th`;
+      return margin;
+    }
+
+    if (token === "text") return `h-th-${margin}`;
+    return `h-52-${margin}`;
+  }
+
+  private buildOverlayFilter(overlay: OverlaySettings) {
+    if (!overlay.enabled) return "";
+
+    const opacity = Math.max(0.2, Math.min(1, overlay.opacity / 100)).toFixed(2);
+    const text = this.escapeDrawText(overlay.text.trim() || "Lumina Edit");
+    const textX = this.getOverlayCoord(overlay.position, "x", "text");
+    const textY = this.getOverlayCoord(overlay.position, "y", "text");
+    const filters = [
+      `drawtext=text='${text}':fontsize=30:fontcolor=white@${opacity}:x=${textX}:y=${textY}`
+    ];
+
+    if (overlay.showWatermark) {
+      const badgeX = this.getOverlayCoord(overlay.position, "x", "badge");
+      const badgeY = this.getOverlayCoord(overlay.position, "y", "badge");
+      filters.unshift(`drawbox=x=${badgeX}:y=${badgeY}:w=200:h=52:color=black@${Math.max(0.2, Number(opacity) - 0.2).toFixed(2)}:t=fill`);
+      filters.push(`drawtext=text='LUMINA':fontsize=18:fontcolor=white@${opacity}:x=${badgeX}+20:y=${badgeY}+33`);
+    }
+
+    return filters.join(",");
   }
 
   async init() {
@@ -79,7 +129,7 @@ class FfmpegEngine {
     await ffmpeg.deleteFile(inFile);
   }
 
-  async trim(file: File, startMs: number, endMs: number) {
+  async trim(file: File, startMs: number, endMs: number, overlay?: OverlaySettings) {
     if (!this.ffmpeg) await this.init();
     const ffmpeg = this.ffmpeg;
     if (!ffmpeg) throw new Error("FFmpeg unavailable");
@@ -88,17 +138,27 @@ class FfmpegEngine {
     const outputName = `out-${crypto.randomUUID()}.mp4`;
 
     await ffmpeg.writeFile(inputName, await fetchFile(file));
-    await ffmpeg.exec([
+    const baseArgs = [
       "-ss",
       (startMs / 1000).toFixed(3),
       "-to",
       (endMs / 1000).toFixed(3),
       "-i",
-      inputName,
-      "-c",
-      "copy",
-      outputName
-    ]);
+      inputName
+    ];
+
+    const overlayFilter = overlay ? this.buildOverlayFilter(overlay) : "";
+    const command = overlayFilter
+      ? [...baseArgs, "-vf", overlayFilter, "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "copy", outputName]
+      : [...baseArgs, "-c", "copy", outputName];
+
+    try {
+      await ffmpeg.exec(command);
+    } catch (error) {
+      if (!overlayFilter) throw error;
+      this.emit("Overlay render failed, retrying export without overlay.");
+      await ffmpeg.exec([...baseArgs, "-c", "copy", outputName]);
+    }
 
     const data = await ffmpeg.readFile(outputName);
     await ffmpeg.deleteFile(inputName);

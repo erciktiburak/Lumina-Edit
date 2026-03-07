@@ -3,12 +3,14 @@
 import { useMemo, useState } from "react";
 import { ffmpegEngine } from "@/lib/ffmpeg/engine";
 import { metrics } from "@/lib/analytics/local-metrics";
+import { useEditorStore } from "@/lib/state/editor-store";
 
 type ExportModalProps = {
   file: File | null;
 };
 
 export function ExportModal({ file }: ExportModalProps) {
+  const overlay = useEditorStore((state) => state.overlay);
   const [open, setOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export function ExportModal({ file }: ExportModalProps) {
     try {
       const safeStart = Math.max(0, Math.min(trimStartMs, trimEndMs - 250));
       const safeEnd = Math.max(safeStart + 250, trimEndMs);
-      const output = await ffmpegEngine.trim(file, safeStart, safeEnd);
+      const output = await ffmpegEngine.trim(file, safeStart, safeEnd, overlay);
       const a = document.createElement("a");
       const url = URL.createObjectURL(output);
       a.href = url;

@@ -25,6 +25,8 @@ function RangeControl({ label, value, min, max, onChange }: RangeControlProps) {
 export function PropertiesPanel() {
   const filters = useEditorStore((state) => state.filters);
   const updateFilters = useEditorStore((state) => state.updateFilters);
+  const overlay = useEditorStore((state) => state.overlay);
+  const updateOverlay = useEditorStore((state) => state.updateOverlay);
 
   return (
     <aside className="panel rounded-2xl p-4">
@@ -48,6 +50,47 @@ export function PropertiesPanel() {
         <RangeControl label="Sepia" value={filters.sepia} min={0} max={100} onChange={(v) => updateFilters({ sepia: v })} />
         <RangeControl label="Brightness" value={filters.brightness} min={50} max={200} onChange={(v) => updateFilters({ brightness: v })} />
         <RangeControl label="Contrast" value={filters.contrast} min={50} max={200} onChange={(v) => updateFilters({ contrast: v })} />
+      </div>
+
+      <h3 className="mb-3 mt-6 font-display text-lg">Overlay</h3>
+      <div className="space-y-3 text-sm">
+        <label className="flex items-center justify-between gap-2">
+          <span>Enable overlay</span>
+          <input type="checkbox" checked={overlay.enabled} onChange={(e) => updateOverlay({ enabled: e.target.checked })} />
+        </label>
+
+        <label className="flex items-center justify-between gap-2">
+          <span>Watermark badge</span>
+          <input type="checkbox" checked={overlay.showWatermark} onChange={(e) => updateOverlay({ showWatermark: e.target.checked })} />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          Overlay text
+          <input
+            type="text"
+            value={overlay.text}
+            maxLength={80}
+            onChange={(e) => updateOverlay({ text: e.target.value })}
+            className="rounded-md border border-border bg-transparent px-2 py-1"
+            placeholder="Add text overlay"
+          />
+        </label>
+
+        <RangeControl label="Opacity" value={overlay.opacity} min={20} max={100} onChange={(v) => updateOverlay({ opacity: v })} />
+
+        <label className="flex flex-col gap-1">
+          Position
+          <select
+            className="rounded-md border border-border bg-transparent px-2 py-1"
+            value={overlay.position}
+            onChange={(e) => updateOverlay({ position: e.target.value as typeof overlay.position })}
+          >
+            <option value="top-left">Top left</option>
+            <option value="top-right">Top right</option>
+            <option value="bottom-left">Bottom left</option>
+            <option value="bottom-right">Bottom right</option>
+          </select>
+        </label>
       </div>
     </aside>
   );

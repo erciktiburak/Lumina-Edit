@@ -37,6 +37,16 @@ export type FilterValues = {
   contrast: number;
 };
 
+export type OverlayPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+export type OverlaySettings = {
+  enabled: boolean;
+  text: string;
+  showWatermark: boolean;
+  opacity: number;
+  position: OverlayPosition;
+};
+
 export type ExportFormat = "mp4" | "webm" | "gif";
 
 export type ExportPreset = {
