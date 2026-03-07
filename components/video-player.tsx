@@ -47,6 +47,7 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
   const setCursor = useEditorStore((state) => state.setCursor);
   const filters = useEditorStore((state) => state.filters);
   const overlay = useEditorStore((state) => state.overlay);
+  const playback = useEditorStore((state) => state.playback);
   const [durationMs, setDurationMs] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -66,6 +67,12 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
       video.currentTime = target;
     }
   }, [cursorMs]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = playback.speed;
+  }, [playback.speed]);
 
   useEffect(() => {
     let raf = 0;
@@ -195,6 +202,7 @@ export function VideoPlayer({ file }: VideoPlayerProps) {
           >
             {isPlaying ? "Pause" : "Play"}
           </button>
+          <div className="rounded-md border border-border px-2 py-1 font-mono text-[10px] text-muted">{playback.speed.toFixed(2)}x</div>
           <input
             type="range"
             min={0}

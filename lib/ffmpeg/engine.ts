@@ -99,6 +99,12 @@ class FfmpegEngine {
     return filters;
   }
 
+  private buildAudioTempoFilter(speed: number) {
+    const clamped = Math.max(0.5, Math.min(2, speed));
+    if (Math.abs(clamped - 1) < 0.001) return "";
+    return `atempo=${clamped.toFixed(3)}`;
+  }
+
   async init() {
     if (this.ffmpeg) return;
     if (this.initPromise) return this.initPromise;
@@ -149,7 +155,7 @@ class FfmpegEngine {
     await ffmpeg.deleteFile(inFile);
   }
 
-  async trim(file: File, startMs: number, endMs: number, overlay?: OverlaySettings, transitions?: TransitionSettings) {
+  async trim(file: File, startMs: number, endMs: number, overlay?: OverlaySettings, transitions?: TransitionSettings, speed = 1) {
     if (!this.ffmpeg) await this.init();
     const ffmpeg = this.ffmpeg;
     if (!ffmpeg) throw new Error("FFmpeg unavailable");
@@ -172,9 +178,28 @@ class FfmpegEngine {
       ...(overlay ? this.buildOverlayFilter(overlay) : []),
       ...(transitions ? this.buildTransitionFilter(transitions, clipDurationSec) : [])
     ];
-    const hasFilters = filterChain.length > 0;
+    const clampedSpeed = Math.max(0.5, Math.min(2, speed));
+    if (Math.abs(clampedSpeed - 1) >= 0.001) {
+      filterChain.push(`setpts=${(1 / clampedSpeed).toFixed(5)}*PTS`);
+    }
+    const audioTempo = this.buildAudioTempoFilter(clampedSpeed);
+
+    const hasFilters = filterChain.length > 0 || Boolean(audioTempo);
     const command = hasFilters
-      ? [...baseArgs, "-vf", filterChain.join(","), "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "copy", outputName]
+      ? [
+          ...baseArgs,
+          ...(filterChain.length > 0 ? ["-vf", filterChain.join(",")] : []),
+          ...(audioTempo ? ["-af", audioTempo] : []),
+          "-c:v",
+          "libx264",
+          "-preset",
+          "veryfast",
+          "-crf",
+          "23",
+          "-c:a",
+          audioTempo ? "aac" : "copy",
+          outputName
+        ]
       : [...baseArgs, "-c", "copy", outputName];
 
     try {

@@ -53,6 +53,10 @@ export type TransitionSettings = {
   fadeOutMs: number;
 };
 
+export type PlaybackSettings = {
+  speed: number;
+};
+
 export type ExportFormat = "mp4" | "webm" | "gif";
 
 export type ExportPreset = {

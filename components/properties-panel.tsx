@@ -7,17 +7,19 @@ type RangeControlProps = {
   value: number;
   min: number;
   max: number;
+  step?: number;
+  valueFormatter?: (value: number) => string;
   onChange: (next: number) => void;
 };
 
-function RangeControl({ label, value, min, max, onChange }: RangeControlProps) {
+function RangeControl({ label, value, min, max, step = 1, valueFormatter, onChange }: RangeControlProps) {
   return (
     <label className="flex flex-col gap-2 text-sm">
       <div className="flex justify-between">
         <span>{label}</span>
-        <span className="font-mono text-xs text-muted">{value}</span>
+        <span className="font-mono text-xs text-muted">{valueFormatter ? valueFormatter(value) : value}</span>
       </div>
-      <input type="range" min={min} max={max} value={value} onChange={(e) => onChange(Number(e.target.value))} />
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
     </label>
   );
 }
@@ -29,6 +31,8 @@ export function PropertiesPanel() {
   const updateOverlay = useEditorStore((state) => state.updateOverlay);
   const transitions = useEditorStore((state) => state.transitions);
   const updateTransitions = useEditorStore((state) => state.updateTransitions);
+  const playback = useEditorStore((state) => state.playback);
+  const updatePlayback = useEditorStore((state) => state.updatePlayback);
 
   return (
     <aside className="panel rounded-2xl p-4">
@@ -119,6 +123,33 @@ export function PropertiesPanel() {
           max={4000}
           onChange={(v) => updateTransitions({ fadeOutMs: v })}
         />
+      </div>
+
+      <h3 className="mb-3 mt-6 font-display text-lg">Speed</h3>
+      <div className="space-y-3 text-sm">
+        <RangeControl
+          label="Playback speed"
+          value={playback.speed}
+          min={0.5}
+          max={2}
+          step={0.05}
+          valueFormatter={(value) => `${value.toFixed(2)}x`}
+          onChange={(value) => updatePlayback({ speed: Number(value.toFixed(2)) })}
+        />
+        <div className="flex gap-2">
+          <button className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => updatePlayback({ speed: 0.5 })}>
+            0.5x
+          </button>
+          <button className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => updatePlayback({ speed: 1 })}>
+            1.0x
+          </button>
+          <button className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => updatePlayback({ speed: 1.5 })}>
+            1.5x
+          </button>
+          <button className="rounded-md border border-border px-2 py-1 text-xs" onClick={() => updatePlayback({ speed: 2 })}>
+            2.0x
+          </button>
+        </div>
       </div>
     </aside>
   );

@@ -26,6 +26,9 @@ type EffectPreset = {
     fadeInMs: number;
     fadeOutMs: number;
   };
+  playback: {
+    speed: number;
+  };
 };
 
 const presets: EffectPreset[] = [
@@ -36,7 +39,8 @@ const presets: EffectPreset[] = [
     swatchClass: "from-slate-700 to-slate-500",
     filters: { grayscale: 0, sepia: 0, brightness: 100, contrast: 100 },
     overlay: { enabled: false, text: "Lumina Edit", showWatermark: true, opacity: 70, position: "top-right" },
-    transitions: { enabled: false, fadeInMs: 500, fadeOutMs: 500 }
+    transitions: { enabled: false, fadeInMs: 500, fadeOutMs: 500 },
+    playback: { speed: 1 }
   },
   {
     id: "cinema-cut",
@@ -45,7 +49,8 @@ const presets: EffectPreset[] = [
     swatchClass: "from-amber-900 to-orange-500",
     filters: { grayscale: 0, sepia: 24, brightness: 112, contrast: 126 },
     overlay: { enabled: true, text: "CINEMA CUT", showWatermark: true, opacity: 74, position: "bottom-right" },
-    transitions: { enabled: true, fadeInMs: 700, fadeOutMs: 900 }
+    transitions: { enabled: true, fadeInMs: 700, fadeOutMs: 900 },
+    playback: { speed: 1 }
   },
   {
     id: "mono-story",
@@ -54,7 +59,8 @@ const presets: EffectPreset[] = [
     swatchClass: "from-zinc-900 to-zinc-500",
     filters: { grayscale: 85, sepia: 8, brightness: 106, contrast: 118 },
     overlay: { enabled: true, text: "FIELD LOG", showWatermark: false, opacity: 78, position: "top-left" },
-    transitions: { enabled: true, fadeInMs: 500, fadeOutMs: 600 }
+    transitions: { enabled: true, fadeInMs: 500, fadeOutMs: 600 },
+    playback: { speed: 0.75 }
   },
   {
     id: "social-fast",
@@ -63,7 +69,8 @@ const presets: EffectPreset[] = [
     swatchClass: "from-cyan-700 to-sky-500",
     filters: { grayscale: 0, sepia: 4, brightness: 120, contrast: 132 },
     overlay: { enabled: true, text: "@lumina", showWatermark: true, opacity: 88, position: "top-right" },
-    transitions: { enabled: true, fadeInMs: 260, fadeOutMs: 320 }
+    transitions: { enabled: true, fadeInMs: 260, fadeOutMs: 320 },
+    playback: { speed: 1.35 }
   }
 ];
 
@@ -71,6 +78,7 @@ export function EffectPresetLibrary() {
   const updateFilters = useEditorStore((state) => state.updateFilters);
   const updateOverlay = useEditorStore((state) => state.updateOverlay);
   const updateTransitions = useEditorStore((state) => state.updateTransitions);
+  const updatePlayback = useEditorStore((state) => state.updatePlayback);
   const [appliedPresetId, setAppliedPresetId] = useState<string>("clean-default");
 
   return (
@@ -93,6 +101,7 @@ export function EffectPresetLibrary() {
                 updateFilters(preset.filters);
                 updateOverlay(preset.overlay);
                 updateTransitions(preset.transitions);
+                updatePlayback(preset.playback);
                 setAppliedPresetId(preset.id);
               }}
             >
