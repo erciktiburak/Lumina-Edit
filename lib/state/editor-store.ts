@@ -97,7 +97,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((state) => ({
       ...state,
       assets: [...state.assets, asset],
-      currentAssetId: state.currentAssetId ?? asset.id,
+      currentAssetId: asset.id,
       history: [...state.history.slice(-30), takeSnapshot(state)],
       future: []
     })),

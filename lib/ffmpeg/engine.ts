@@ -2,6 +2,23 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
 import type { OverlayPosition, OverlaySettings, TransitionSettings } from "@/lib/types/editor";
 
+type BatchTrimItem = {
+  id: string;
+  file: File;
+  startMs: number;
+  endMs: number;
+  speed?: number;
+  overlay?: OverlaySettings;
+  transitions?: TransitionSettings;
+  fileName: string;
+};
+
+type BatchTrimResult = {
+  id: string;
+  fileName: string;
+  blob: Blob;
+};
+
 const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
 
 const canUseThreadedCore = () =>
@@ -220,6 +237,24 @@ class FfmpegEngine {
 
     const bytes = Uint8Array.from(data);
     return new Blob([bytes.buffer], { type: "video/mp4" });
+  }
+
+  async batchTrim(items: BatchTrimItem[]): Promise<BatchTrimResult[]> {
+    const outputs: BatchTrimResult[] = [];
+
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      this.emit(`Batch export ${index + 1}/${items.length}: ${item.fileName}`);
+      const blob = await this.trim(item.file, item.startMs, item.endMs, item.overlay, item.transitions, item.speed ?? 1);
+      outputs.push({
+        id: item.id,
+        fileName: item.fileName,
+        blob
+      });
+    }
+
+    this.emit(`Batch export finished: ${outputs.length} clips rendered.`);
+    return outputs;
   }
 }
 
