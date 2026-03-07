@@ -11,6 +11,7 @@ type ExportModalProps = {
 
 export function ExportModal({ file }: ExportModalProps) {
   const overlay = useEditorStore((state) => state.overlay);
+  const transitions = useEditorStore((state) => state.transitions);
   const [open, setOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export function ExportModal({ file }: ExportModalProps) {
     try {
       const safeStart = Math.max(0, Math.min(trimStartMs, trimEndMs - 250));
       const safeEnd = Math.max(safeStart + 250, trimEndMs);
-      const output = await ffmpegEngine.trim(file, safeStart, safeEnd, overlay);
+      const output = await ffmpegEngine.trim(file, safeStart, safeEnd, overlay, transitions);
       const a = document.createElement("a");
       const url = URL.createObjectURL(output);
       a.href = url;

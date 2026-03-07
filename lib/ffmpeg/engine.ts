@@ -1,6 +1,6 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile, toBlobURL } from "@ffmpeg/util";
-import type { OverlayPosition, OverlaySettings } from "@/lib/types/editor";
+import type { OverlayPosition, OverlaySettings, TransitionSettings } from "@/lib/types/editor";
 
 const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
 
@@ -59,7 +59,7 @@ class FfmpegEngine {
   }
 
   private buildOverlayFilter(overlay: OverlaySettings) {
-    if (!overlay.enabled) return "";
+    if (!overlay.enabled) return [] as string[];
 
     const opacity = Math.max(0.2, Math.min(1, overlay.opacity / 100)).toFixed(2);
     const text = this.escapeDrawText(overlay.text.trim() || "Lumina Edit");
@@ -76,7 +76,27 @@ class FfmpegEngine {
       filters.push(`drawtext=text='LUMINA':fontsize=18:fontcolor=white@${opacity}:x=${badgeX}+20:y=${badgeY}+33`);
     }
 
-    return filters.join(",");
+    return filters;
+  }
+
+  private buildTransitionFilter(transitions: TransitionSettings, clipDurationSec: number) {
+    if (!transitions.enabled || clipDurationSec <= 0) return [] as string[];
+
+    const fadeInSec = Math.max(0, transitions.fadeInMs / 1000);
+    const fadeOutSec = Math.max(0, transitions.fadeOutMs / 1000);
+    const maxWindow = clipDurationSec - 0.05;
+    const inDuration = Math.min(fadeInSec, maxWindow);
+    const outDuration = Math.min(fadeOutSec, maxWindow);
+    const outStart = Math.max(0, clipDurationSec - outDuration);
+
+    const filters: string[] = [];
+    if (inDuration > 0) {
+      filters.push(`fade=t=in:st=0:d=${inDuration.toFixed(3)}`);
+    }
+    if (outDuration > 0) {
+      filters.push(`fade=t=out:st=${outStart.toFixed(3)}:d=${outDuration.toFixed(3)}`);
+    }
+    return filters;
   }
 
   async init() {
@@ -129,7 +149,7 @@ class FfmpegEngine {
     await ffmpeg.deleteFile(inFile);
   }
 
-  async trim(file: File, startMs: number, endMs: number, overlay?: OverlaySettings) {
+  async trim(file: File, startMs: number, endMs: number, overlay?: OverlaySettings, transitions?: TransitionSettings) {
     if (!this.ffmpeg) await this.init();
     const ffmpeg = this.ffmpeg;
     if (!ffmpeg) throw new Error("FFmpeg unavailable");
@@ -147,16 +167,21 @@ class FfmpegEngine {
       inputName
     ];
 
-    const overlayFilter = overlay ? this.buildOverlayFilter(overlay) : "";
-    const command = overlayFilter
-      ? [...baseArgs, "-vf", overlayFilter, "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "copy", outputName]
+    const clipDurationSec = Math.max(0, (endMs - startMs) / 1000);
+    const filterChain = [
+      ...(overlay ? this.buildOverlayFilter(overlay) : []),
+      ...(transitions ? this.buildTransitionFilter(transitions, clipDurationSec) : [])
+    ];
+    const hasFilters = filterChain.length > 0;
+    const command = hasFilters
+      ? [...baseArgs, "-vf", filterChain.join(","), "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "copy", outputName]
       : [...baseArgs, "-c", "copy", outputName];
 
     try {
       await ffmpeg.exec(command);
     } catch (error) {
-      if (!overlayFilter) throw error;
-      this.emit("Overlay render failed, retrying export without overlay.");
+      if (!hasFilters) throw error;
+      this.emit("Filtered render failed, retrying export without filters.");
       await ffmpeg.exec([...baseArgs, "-c", "copy", outputName]);
     }
 

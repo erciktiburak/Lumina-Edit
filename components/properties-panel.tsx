@@ -27,6 +27,8 @@ export function PropertiesPanel() {
   const updateFilters = useEditorStore((state) => state.updateFilters);
   const overlay = useEditorStore((state) => state.overlay);
   const updateOverlay = useEditorStore((state) => state.updateOverlay);
+  const transitions = useEditorStore((state) => state.transitions);
+  const updateTransitions = useEditorStore((state) => state.updateTransitions);
 
   return (
     <aside className="panel rounded-2xl p-4">
@@ -91,6 +93,32 @@ export function PropertiesPanel() {
             <option value="bottom-right">Bottom right</option>
           </select>
         </label>
+      </div>
+
+      <h3 className="mb-3 mt-6 font-display text-lg">Transitions</h3>
+      <div className="space-y-3 text-sm">
+        <label className="flex items-center justify-between gap-2">
+          <span>Enable fade transitions</span>
+          <input
+            type="checkbox"
+            checked={transitions.enabled}
+            onChange={(e) => updateTransitions({ enabled: e.target.checked })}
+          />
+        </label>
+        <RangeControl
+          label="Fade In (ms)"
+          value={transitions.fadeInMs}
+          min={0}
+          max={4000}
+          onChange={(v) => updateTransitions({ fadeInMs: v })}
+        />
+        <RangeControl
+          label="Fade Out (ms)"
+          value={transitions.fadeOutMs}
+          min={0}
+          max={4000}
+          onChange={(v) => updateTransitions({ fadeOutMs: v })}
+        />
       </div>
     </aside>
   );

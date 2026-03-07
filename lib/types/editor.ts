@@ -47,6 +47,12 @@ export type OverlaySettings = {
   position: OverlayPosition;
 };
 
+export type TransitionSettings = {
+  enabled: boolean;
+  fadeInMs: number;
+  fadeOutMs: number;
+};
+
 export type ExportFormat = "mp4" | "webm" | "gif";
 
 export type ExportPreset = {

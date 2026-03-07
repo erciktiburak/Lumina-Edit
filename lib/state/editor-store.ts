@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { db } from "@/lib/storage/db";
-import type { Clip, ExportPreset, FilterValues, MediaAsset, OverlaySettings, Track } from "@/lib/types/editor";
+import type { Clip, ExportPreset, FilterValues, MediaAsset, OverlaySettings, Track, TransitionSettings } from "@/lib/types/editor";
 
 type EditorSnapshot = {
   assets: MediaAsset[];
@@ -13,6 +13,7 @@ type EditorSnapshot = {
   zoom: number;
   filters: FilterValues;
   overlay: OverlaySettings;
+  transitions: TransitionSettings;
 };
 
 type EditorState = EditorSnapshot & {
@@ -28,6 +29,7 @@ type EditorState = EditorSnapshot & {
   setCurrentAsset: (id: string) => void;
   updateFilters: (values: Partial<FilterValues>) => void;
   updateOverlay: (values: Partial<OverlaySettings>) => void;
+  updateTransitions: (values: Partial<TransitionSettings>) => void;
   addClip: (clip: Clip) => void;
   reorderClips: (sourceId: string, destinationId: string) => void;
   undo: () => void;
@@ -58,6 +60,11 @@ const baseSnapshot: EditorSnapshot = {
     showWatermark: true,
     opacity: 70,
     position: "top-right"
+  },
+  transitions: {
+    enabled: false,
+    fadeInMs: 500,
+    fadeOutMs: 500
   }
 };
 
@@ -69,7 +76,8 @@ const takeSnapshot = (state: EditorState): EditorSnapshot => ({
   cursorMs: state.cursorMs,
   zoom: state.zoom,
   filters: state.filters,
-  overlay: state.overlay
+  overlay: state.overlay,
+  transitions: state.transitions
 });
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -108,6 +116,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((state) => ({
       ...state,
       overlay: { ...state.overlay, ...values }
+    })),
+
+  updateTransitions: (values) =>
+    set((state) => ({
+      ...state,
+      transitions: { ...state.transitions, ...values }
     })),
 
   addClip: (clip) =>
