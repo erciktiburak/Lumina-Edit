@@ -46,7 +46,9 @@ Detailed architecture notes: `docs/architecture.md`
 - Auto-save snapshots into IndexedDB.
 - Overlay system (watermark + custom text + position + opacity).
 - Transition controls for fade-in and fade-out.
+- Speed manipulation controls (0.5x to 2.0x) for preview and export.
 - Effect preset library with one-click real-time preview.
+- Adaptive canvas preview tuned for smoother 4K playback.
 - Local export modal and download.
 - Tutorial overlay for first-time users.
 - Local-only usage metrics panel.
@@ -58,14 +60,14 @@ Detailed architecture notes: `docs/architecture.md`
 1. Upload media and preview it instantly.
 2. Arrange clips in the timeline and reorder with drag-and-drop.
 3. Pick an effect preset (or tune filters manually).
-4. Add overlay text/watermark and set fade transition durations.
+4. Add overlay text/watermark, set fade transitions, and tune speed.
 5. Export locally through FFmpeg.wasm without uploading source media.
 
 ## Progress Snapshot
 
-- Current status: through roadmap step #25.
-- Recent commits include timeline reorder, overlays, and transitions.
-- The next focus is timeline depth (speed controls, batching, concat polish).
+- Current status: through roadmap step #27.
+- Recent commits include overlays, transitions, preset library, 4K canvas optimization, and speed controls.
+- The next focus is batch processing and undo/redo depth polishing.
 
 ## Browser-native limitations
 
