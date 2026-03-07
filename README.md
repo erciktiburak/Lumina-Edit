@@ -41,13 +41,31 @@ Detailed architecture notes: `docs/architecture.md`
 - Drag-and-drop media ingest with preview hooks.
 - FFmpeg.wasm lazy initialization and log stream.
 - Basic timeline + zoom + clip visualization.
+- Drag-and-drop clip reordering on timeline tracks.
 - Keyboard shortcuts (`Cmd/Ctrl+S`, `Cmd/Ctrl+Z`, `Cmd/Ctrl+Shift+Z`).
 - Auto-save snapshots into IndexedDB.
+- Overlay system (watermark + custom text + position + opacity).
+- Transition controls for fade-in and fade-out.
+- Effect preset library with one-click real-time preview.
 - Local export modal and download.
 - Tutorial overlay for first-time users.
 - Local-only usage metrics panel.
 - PWA manifest + service worker shell.
 - Open Graph image route for sharing.
+
+## Editing Workflow
+
+1. Upload media and preview it instantly.
+2. Arrange clips in the timeline and reorder with drag-and-drop.
+3. Pick an effect preset (or tune filters manually).
+4. Add overlay text/watermark and set fade transition durations.
+5. Export locally through FFmpeg.wasm without uploading source media.
+
+## Progress Snapshot
+
+- Current status: through roadmap step #25.
+- Recent commits include timeline reorder, overlays, and transitions.
+- The next focus is timeline depth (speed controls, batching, concat polish).
 
 ## Browser-native limitations
 
@@ -88,7 +106,7 @@ wasm/                # Rust/WASM experimental filters
 
 ## Next milestones
 
-- Real multi-clip concatenation and transitions.
+- Real multi-clip concatenation polish and smarter track snapping.
 - Background removal model pipeline.
 - OffscreenCanvas renderer path for high-res preview.
 - Chunked encoding for large exports.
