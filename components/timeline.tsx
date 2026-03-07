@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import { useEditorStore } from "@/lib/state/editor-store";
 import { formatMs, timeToPixels } from "@/lib/utils/time";
@@ -10,6 +10,9 @@ export function Timeline() {
   const tracks = useEditorStore((state) => state.tracks);
   const zoom = useEditorStore((state) => state.zoom);
   const setZoom = useEditorStore((state) => state.setZoom);
+  const reorderClips = useEditorStore((state) => state.reorderClips);
+  const [dragSourceId, setDragSourceId] = useState<string | null>(null);
+  const [dragTargetId, setDragTargetId] = useState<string | null>(null);
 
   const totalMs = useMemo(() => clips.reduce((max, clip) => Math.max(max, clip.endMs), 0), [clips]);
   const tickMs = 1000;
@@ -67,9 +70,38 @@ export function Timeline() {
                   .map((clip) => (
                     <div
                       key={clip.id}
-                      className="absolute top-4 h-7 rounded-md border border-accent bg-accent/15 px-2 py-1 text-[10px]"
+                      className={`absolute top-4 h-7 rounded-md border px-2 py-1 text-[10px] transition-colors ${
+                        dragTargetId === clip.id
+                          ? "border-accent bg-accent/30"
+                          : "border-accent bg-accent/15"
+                      } ${dragSourceId === clip.id ? "cursor-grabbing opacity-70" : "cursor-grab"}`}
                       style={{ left: `${timeToPixels(clip.startMs, zoom)}px`, width: `${timeToPixels(clip.endMs - clip.startMs, zoom)}px` }}
                       title={`${formatMs(clip.startMs)} - ${formatMs(clip.endMs)}`}
+                      draggable
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move";
+                        setDragSourceId(clip.id);
+                      }}
+                      onDragOver={(event) => {
+                        if (!dragSourceId || dragSourceId === clip.id) return;
+                        event.preventDefault();
+                        setDragTargetId(clip.id);
+                      }}
+                      onDragLeave={() => {
+                        if (dragTargetId === clip.id) {
+                          setDragTargetId(null);
+                        }
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        if (!dragSourceId || dragSourceId === clip.id) return;
+                        reorderClips(dragSourceId, clip.id);
+                        setDragTargetId(null);
+                      }}
+                      onDragEnd={() => {
+                        setDragSourceId(null);
+                        setDragTargetId(null);
+                      }}
                     >
                       {clip.id.slice(0, 8)}
                     </div>
